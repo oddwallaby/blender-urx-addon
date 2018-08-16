@@ -26,6 +26,9 @@ class URScript(object):
     self.indent_level -= 1
     self.add_line('end')
 
+  def set_tool_digital_out(self, index, state):
+    self.add_line('set_tool_digital_out({}, {})'.format(index, state))
+
   def while_loop(self, condition):
     self.add_line('while {}:'.format(condition))
     self.indent_level += 1
