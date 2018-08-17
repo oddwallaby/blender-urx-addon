@@ -71,6 +71,7 @@ class Robot(object):
 
   def connect(self):
     self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    self.sock.settimeout(3)
     self.sock.connect((self.host, self.port))
 
   def send(self, data):
@@ -282,8 +283,12 @@ class URxExportAnimationOperator(bpy.types.Operator):
       with open('/tmp/export.urscript', 'w') as script_file:
         script_file.write(script.text)
 
-      robot.send(script.text)
-      log.info('Sent script to robot')
+      try:
+        robot.send(script.text)
+        log.info('Sent script to robot')
+      except socket.timeout:
+        self.report({'ERROR'}, 'Failed to connect to robot')
+        return {'CANCELLED'}
 
     return {'FINISHED'}
 
