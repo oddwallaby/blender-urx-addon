@@ -8,6 +8,7 @@ import gc
 import logging
 import socket
 import re
+import ipaddress
 
 # Support reloading
 if 'ur_script' in locals():
@@ -169,6 +170,28 @@ def fix_overrotation(fps, current_angle, last_angle):
 
   return current_angle
 
+def is_valid_ip(address):
+  try:
+    ipaddress.ip_address(address)
+    return True
+  except ValueError:
+    return False
+
+def get_robot_ip(self):
+  config = load_configuration()
+  return config['robot']['host']
+
+def set_robot_ip(self, ip):
+  if not is_valid_ip(ip):
+    self.error = 'Invalid IP address'
+    return
+
+  config = load_configuration()
+
+  if config['robot']['host'] != ip:
+    config['robot']['host'] = ip
+    save_configuration(config)
+
 class URxExportAnimationOperator(bpy.types.Operator):
   """Exports animation to UR Script and sends to robot arm"""
   bl_idname = 'urx.export'
@@ -176,14 +199,18 @@ class URxExportAnimationOperator(bpy.types.Operator):
   bl_options = { 'REGISTER' }
 
   loop = bpy.props.BoolProperty(name="Loop Animation", default=False)
+  robot_ip_address = bpy.props.StringProperty(name="Robot IP Address", get=get_robot_ip, set=set_robot_ip)
 
   def invoke(self, context, event):
-    self.config = load_configuration()
-
     # Pop up the window with our operators options before executing
     return context.window_manager.invoke_props_dialog(self, width=500)
 
   def execute(self, context):
+    # Check if an error was set in a getter/setter
+    if hasattr(self, 'error'):
+      self.report({'ERROR'}, self.error)
+      return {'CANCELLED'}
+
     scene = context.scene
 
     output_type = 'urscript'
@@ -245,7 +272,8 @@ class URxExportAnimationOperator(bpy.types.Operator):
     # Set the current frame back to what it was originally
     scene.frame_set(start_frame_index)
 
-    robot = Robot(self.config['robot']['host'], self.config['robot']['script_port'])
+    config = load_configuration()
+    robot = Robot(config['robot']['host'], config['robot']['script_port'])
 
     log.info('Setup robot at {}:{}'.format(robot.host, robot.port))
 
