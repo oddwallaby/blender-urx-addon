@@ -304,13 +304,21 @@ class URxMoveToPoseOperator(bpy.types.Operator):
 
   def execute(self, context):
     armature_obj = bpy.data.objects['Armature']
-    #bpy.context.scene.objects.active = armature_obj
+    ik_target = bpy.data.objects['IK Target']
+
+    # Select the IK Target object
+    previous_selection = bpy.context.scene.objects.active
+    bpy.context.scene.objects.active = ik_target
+
     bpy.ops.object.mode_set(mode='POSE')
 
     robot = Robot(self.config['robot']['host'], self.config['robot']['script_port'])
     robot.movej(pose_to_ur_joint_angles(armature_obj.pose.bones))
 
     log.info('Moved robot to pose')
+
+    # Select whatever was selected before again
+    bpy.context.scene.objects.active = previous_selection
 
     return {'FINISHED'}
 
