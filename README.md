@@ -9,3 +9,6 @@ Control Universal Robots robots from within Blender.
 3. Animate the target (and consequently the robot). Watch the animation and triple check that there are no unexpected glitches (which could cause the robot to move in an unexpected manner).
 4. Run the Blender operator "Export to Universal Robots arm". Select whether the animation should be looped (warning! If the start and end positions differ the robot may try to move very rapidly between them). Hitting "OK" will cause the robot to start moving!
 
+## Send to Pose Shortcut
+
+By default pressing **alt+tab** will move the robot to match the current robot pose. Note that this is not the first frame of your animation but the current state of the arm in the editor.
